@@ -1,5 +1,8 @@
 #include "CLPModel.hpp"
 #include <jni.h>
+#include <signal.h>
+#include <vector>
+#include <mutex>
 
 struct DoubleArrayMapping_t {
   jdoubleArray jarr;
@@ -25,20 +28,47 @@ public:
   }
 };
 
+std::mutex mtx;
+std::vector<CLPModelWrapper*> wrappers {};
+bool first = true;
+
+static void sinal_handler(int whichSignal) {
+  std::lock_guard<std::mutex> lock(mtx);
+  std::cout << "wrappers len" << wrappers.size() << "\n";
+  for (CLPModelWrapper* wrapper : wrappers){
+    CLPModel* model_ptr;
+    if (wrapper != nullptr && (model_ptr = wrapper->model) != nullptr){
+      std::cout << "CLPModel" << model_ptr << "\n";
+      std::cout << "CBCModel" << model_ptr->m_cbc << "\n";
+      CbcModel *model = wrapper->model->m_cbc;
+      if (model != nullptr) {
+	model->sayEventHappened();
+	if (model->heuristicModel())
+	  model->heuristicModel()->sayEventHappened();
+      }
+      std::cout << "kill wrapper " << wrapper << " model " << model << "\n";
+    }
+  }
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
 JNIEXPORT jlong JNICALL
 Java_de_unijena_bioinf_FragmentationTreeConstruction_computation_tree_ilp_CLPModel_1JNI_n_1ctor(
     JNIEnv *, jobject, jint ncols, jint obj_sense) {
-  return (jlong) new CLPModelWrapper(ncols, obj_sense);
+  CLPModelWrapper* wrapper = new CLPModelWrapper(ncols, obj_sense);
+  std::lock_guard<std::mutex> lock(mtx);
+  return (jlong) wrapper;
 }
 
 JNIEXPORT void JNICALL
 Java_de_unijena_bioinf_FragmentationTreeConstruction_computation_tree_ilp_CLPModel_1JNI_n_1dispose(
   JNIEnv *, jobject, jlong wrapper_ptr) {
-  delete (CLPModelWrapper *) wrapper_ptr;
+  CLPModelWrapper *wrapper =  (CLPModelWrapper *) wrapper_ptr;
+  delete wrapper;
 }
 
 JNIEXPORT jdouble JNICALL
@@ -150,20 +180,40 @@ Java_de_unijena_bioinf_FragmentationTreeConstruction_computation_tree_ilp_CLPMod
   env->ReleaseDoubleArrayElements(j_ub, ub, JNI_ABORT);
 }
 
-JNIEXPORT jint JNICALL
-Java_de_unijena_bioinf_FragmentationTreeConstruction_computation_tree_ilp_CLPModel_1JNI_n_1solve(
+  JNIEXPORT jint JNICALL
+  Java_de_unijena_bioinf_FragmentationTreeConstruction_computation_tree_ilp_CLPModel_1JNI_n_1solve(
     JNIEnv *, jobject, jlong wrapper_ptr) {
-  CLPModelWrapper *wrapper{((CLPModelWrapper *) wrapper_ptr)};
-  if (wrapper->cached_elems.size() > 0) {
-    // assume everything is cached
-    auto numrows{wrapper->cached_lb.size()};
-    auto len{wrapper->cached_elems.size()};
-    wrapper->model->addSparseRows(
+    CLPModelWrapper *wrapper{((CLPModelWrapper *) wrapper_ptr)};
+    if (wrapper->cached_elems.size() > 0) {
+      // assume everything is cached
+      auto numrows{wrapper->cached_lb.size()};
+      auto len{wrapper->cached_elems.size()};
+      wrapper->model->addSparseRows(
         numrows, &wrapper->cached_rowstarts[0], &wrapper->cached_elems[0],
         &wrapper->cached_indices[0], len, &wrapper->cached_lb[0],
         &wrapper->cached_ub[0]);
-  }
-  return static_cast<int>(wrapper->model->solve());
+    }
+    bool store {wrapper->model->m_nrows * wrapper->model->m_ncols > 10000000};
+    if (store){
+      std::lock_guard<std::mutex> lock(mtx);
+      std::cout << "storing wrapper: " << wrapper << "\n";
+      wrappers.push_back(wrapper);
+      if (first){
+	  signal(SIGINT, sinal_handler);
+	  first = false;
+      }
+    }
+    CLPModel::ReturnStatus ret = wrapper->model->solve();
+    if (store){
+      std::lock_guard<std::mutex> lock(mtx);
+      for (auto it = wrappers.begin(); it != wrappers.end(); ++it)
+	if (*it == wrapper){
+	  std::cout << "deleting " << wrapper << "\n";
+	  wrappers.erase(it);
+	  break;
+	}
+    }
+    return static_cast<int>(ret);
 }
 
 JNIEXPORT jdoubleArray JNICALL

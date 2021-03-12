@@ -17,10 +17,7 @@ public:
 
 private:
   OsiClpSolverInterface *m_si;
-  CbcModel* m_cbc;
   CoinPackedMatrix *m_matrix{nullptr};
-  const int m_ncols;
-  int m_nrows;
   const double *m_objective;
   const double *m_col_lb;
   const double *m_col_ub;
@@ -34,6 +31,9 @@ private:
   double m_max_seconds{1.0e100};
 
 public:
+  CbcModel* m_cbc;
+  const int m_ncols;
+  int m_nrows;
   CLPModel(int ncols, ObjectiveSense obj_sense = OBJ_MAXIMIZE);
   ~CLPModel();
   int getNCols() const { return m_ncols; }
