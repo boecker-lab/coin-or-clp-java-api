@@ -38,16 +38,16 @@ jobs:
         working-directory: api/build/test
         run: ./CLPTest
 
-      - name: package and upload
-        working-directory: api/build/native/
-        run: |
-          zipfile=clp_cbc-2.10.8.zip
-          url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
-          if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
-            curl $url/$zipfile -o $zipfile
-            zip $zipfile -d 'clp/l64/*' || true # delete old binaries
-          fi
-          mkdir clp
-          cp -r l64 clp/
-          zip $zipfile clp/l64/* # insert new ones
-          curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
+      # - name: package and upload
+      #   working-directory: api/build/native/
+      #   run: |
+      #     zipfile=clp_cbc-2.10.8.zip
+      #     url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
+      #     if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
+      #       curl $url/$zipfile -o $zipfile
+      #       zip $zipfile -d 'clp/l64/*' || true # delete old binaries
+      #     fi
+      #     mkdir clp
+      #     cp -r l64 clp/
+      #     zip $zipfile clp/l64/* # insert new ones
+      #     curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
