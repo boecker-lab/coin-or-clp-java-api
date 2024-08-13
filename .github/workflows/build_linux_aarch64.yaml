@@ -1,0 +1,92 @@
+name: build_CLP_linux64
+
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: uraimo/run-on-arch-action@v2
+        name: build clp+wrapper in aarch64 container
+        id: build
+        with:
+          arch: aarch64
+          distro: ubuntu-20.04
+
+          # Not required, but speeds up builds
+          githubToken: ${{ github.token }}
+
+          # Create an artifacts directory
+          setup: |
+            mkdir -p "${PWD}/artifacts"
+
+          # Mount the artifacts directory as /artifacts in the container
+          dockerRunArgs: |
+            --volume "${PWD}/artifacts:/artifacts"
+
+          # Pass some environment variables to the container
+          env: | # YAML, but pipe character is necessary
+            artifact_name: clp
+
+          # The shell to run commands with in the container
+          shell: /bin/bash
+
+          # Install some dependencies in the container. This speeds up builds if
+          # you are also using githubToken. Any dependencies installed here will
+          # be part of the container image that gets cached, so subsequent
+          # builds don't have to re-install them. The image layer is cached
+          # publicly in your project's package repository, so it is vital that
+          # no secrets are present in the container state or logs.
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y git
+
+          # Produce a binary artifact and place it in the mounted volume
+          run: |
+            ls -ltrha
+
+      # - name: Cache coin-or dependencies
+      #   id: cache-coinor
+      #   uses: actions/cache@v2
+      #   with:
+      #     path:  api/extern/coinor/linux64/dist
+      #     key: ${{ runner.os }}-coinor-cbc2.10.8
+
+      # - name: build coinor
+      #   working-directory: api/extern/coinor
+      #   if: steps.cache-coinor.outputs.cache-hit != 'true'
+      #   run: |
+      #     export ADD_FFLAGS=-fallow-argument-mismatch
+      #     # export ADD_CXXFLAGS=-lrt # only use if getting the error: "undefined reference to `clock_gettime'"
+      #     ./coinbrew build install Cbc@releases/2.10.8 --parallel-jobs $(nproc) --tests none --prefix linux64/dist
+
+      # - name: build CLPWrapper
+      #   working-directory: api
+      #   run: |
+      #     mkdir build
+      #     cd build
+      #     cmake .. # with -DSTATIC_STD=ON for old glibc versions
+      #     cmake --build . --target install
+
+      # - name: CLPTest
+      #   working-directory: api/build/test
+      #   run: ./CLPTest
+
+      # - name: package and upload
+      #   working-directory: api/build/native/
+      #   run: |
+      #     zipfile=clp_cbc-2.10.8.zip
+      #     url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
+      #     if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
+      #       curl $url/$zipfile -o $zipfile
+      #       zip $zipfile -d 'clp/l64/*' || true # delete old binaries
+      #     fi
+      #     mkdir clp
+      #     cp -r l64 clp/
+      #     zip $zipfile clp/l64/* # insert new ones
+      #     curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
