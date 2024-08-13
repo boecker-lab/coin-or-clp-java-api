@@ -48,6 +48,8 @@ jobs:
 
           # Produce a binary artifact and place it in the mounted volume
           run: |
+            pwd
+            ls -ltrh
             # build coinor
             export ADD_FFLAGS=-fallow-argument-mismatch
             cd /api/extern/coinor
@@ -63,7 +65,7 @@ jobs:
             ./CLPTest
             cd /api/build/native/
             ls -ltrh
- 
+
 
       # - name: Cache coin-or dependencies
       #   id: cache-coinor
