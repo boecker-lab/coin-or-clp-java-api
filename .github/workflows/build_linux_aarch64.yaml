@@ -1,4 +1,4 @@
-name: build_CLP_linux64
+name: build_CLP_linux_aarch64
 
 
 on:
