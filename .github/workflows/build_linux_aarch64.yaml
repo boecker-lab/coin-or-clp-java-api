@@ -44,11 +44,26 @@ jobs:
           # no secrets are present in the container state or logs.
           install: |
             apt-get update -q -y
-            apt-get install -q -y git
+            apt-get install -q -y build-essential dos2unix pkg-config tar wget patch git gfortran
 
           # Produce a binary artifact and place it in the mounted volume
           run: |
-            ls -ltrha
+            # build coinor
+            export ADD_FFLAGS=-fallow-argument-mismatch
+            cd /api/extern/coinor
+            ./coinbrew build install Cbc@releases/2.10.8 --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
+            # build wrapper
+            cd /api
+            mkdir build
+            cd /build
+            cmake .. # with -DSTATIC_STD=ON for old glibc versions
+            cmake --build . --target install
+            # test
+            cd /api/build/test
+            ./CLPTest
+            cd /api/build/native/
+            ls -ltrh
+ 
 
       # - name: Cache coin-or dependencies
       #   id: cache-coinor
