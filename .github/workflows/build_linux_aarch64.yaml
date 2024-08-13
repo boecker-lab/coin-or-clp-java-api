@@ -53,7 +53,7 @@ jobs:
             # build coinor
             export ADD_FFLAGS=-fallow-argument-mismatch
             cd api/extern/coinor
-            ./coinbrew build install Cbc@releases/2.10.8 --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
+            ./coinbrew build install Cbc --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
             # build wrapper
             cd ../../
             mkdir build
