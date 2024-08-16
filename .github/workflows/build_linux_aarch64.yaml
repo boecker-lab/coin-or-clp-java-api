@@ -52,6 +52,7 @@ jobs:
             ls -ltrh
             # build coinor
             export ADD_FFLAGS=-fallow-argument-mismatch
+            export ADD_CXXFLAGS==-fpermissive
             cd api/extern/coinor
             ./coinbrew build install Cbc@master --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
             # build wrapper
