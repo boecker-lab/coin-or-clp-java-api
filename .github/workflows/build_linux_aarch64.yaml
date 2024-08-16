@@ -44,8 +44,8 @@ jobs:
           # no secrets are present in the container state or logs.
           install: |
             apt-get update -q -y
-            apt-get install -q -y gcc-12 make dos2unix pkg-config tar wget patch git gfortran
-            apt-get remove gcc-12
+            apt-get install -q -y g++12 gcc-12 make dos2unix pkg-config tar wget patch git gfortran
+            apt-get remove gcc-11 g++-11
 
           # Produce a binary artifact and place it in the mounted volume
           run: |
