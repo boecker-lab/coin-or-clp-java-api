@@ -66,6 +66,8 @@ jobs:
             cd api/extern/coinor
             ./coinbrew build install Cbc@master --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
             # build wrapper
+            ls -ltrh linuxaarch64/dist/include
+            ls -ltrh linuxaarch64/dist/include/coin
             cd ../../
             mkdir build
             cd build
