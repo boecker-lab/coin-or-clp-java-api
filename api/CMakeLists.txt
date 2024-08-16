@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # determine architecture
 if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
   set (TARGET_ARCH "64")
-elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
   set (TARGET_ARCH "aarch64")
 elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86"
     OR CMAKE_SYSTEM_PROCESSOR STREQUAL "i386"
@@ -49,7 +49,7 @@ endif()
 set(COIN_LIB_HINTS_GENERAL extern/coinor/dist/lib) # locally built libraries
 include_directories(extern/coinor/dist/include/coin)
 
-message("Arch: ${TARGET_ARCH}, using compiled CLP binaries from "
+message("Arch: ${TARGET_ARCH} (from cmake variable ${CMAKE_SYSTEM_PROCESSOR}), using compiled CLP binaries from "
   "${COIN_LIB_HINTS}")
 
 # coin files
