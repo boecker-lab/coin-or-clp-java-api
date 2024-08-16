@@ -52,23 +52,24 @@ jobs:
           install: |
             apt-get update -q -y
             apt-get install -q -y g++-12 gcc-12 make dos2unix pkg-config tar wget patch git gfortran cmake openjdk-21-jdk zlib1g-dev
+
+          # Produce a binary artifact and place it in the mounted volume
+          run: |
+            pwd
+            ls -ltrh
             update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12
             update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
-            # gcc --version
+            gcc --version
             # build coinor
             export ADD_FFLAGS=-fallow-argument-mismatch
             # export ADD_CXXFLAGS==-fpermissive
             cd api/extern/coinor
             ./coinbrew build install Cbc@master --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
             # build wrapper
-            # ls -ltrh linuxaarch64/dist/include
+            ls -ltrh linuxaarch64/dist/include
+            ls -ltrh linuxaarch64/dist/include/coin-or
             mv linuxaarch64/dist/include/coin-or linuxaarch64/dist/include/coin
-
-          # Produce a binary artifact and place it in the mounted volume
-          run: |
-            pwd
-            ls -ltrh
-            cd api
+            cd ../../
             mkdir build
             cd build
             export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64
