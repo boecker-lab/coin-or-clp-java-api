@@ -69,6 +69,7 @@ jobs:
             cd ../../
             mkdir build
             cd build
+            export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64
             cmake .. # with -DSTATIC_STD=ON for old glibc versions
             cmake --build . --target install
             # test
