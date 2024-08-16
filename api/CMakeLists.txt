@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # determine architecture
 if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
   set (TARGET_ARCH "64")
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
+  set (TARGET_ARCH "aarch64")
 elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86"
     OR CMAKE_SYSTEM_PROCESSOR STREQUAL "i386"
     OR CMAKE_SYSTEM_PROCESSOR STREQUAL "i686")
@@ -36,6 +38,9 @@ elseif(CMAKE_HOST_UNIX)
   if (TARGET_ARCH STREQUAL "32")
     set(COIN_LIB_HINTS extern/coinor/linux32/dist/lib)
     include_directories(extern/coinor/linux32/dist/include/coin)
+  elseif (TARGET_ARCH STREQUAL "aarch64")
+    set(COIN_LIB_HINTS extern/coinor/linuxaarch64/dist/lib)
+    include_directories(extern/coinor/linuxaarch64/dist/include/coin)
   else()
     set(COIN_LIB_HINTS extern/coinor/linux64/dist/lib)
     include_directories(extern/coinor/linux64/dist/include/coin)
