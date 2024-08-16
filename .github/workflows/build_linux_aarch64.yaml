@@ -15,9 +15,8 @@ jobs:
         name: build clp+wrapper in aarch64 container
         id: build
         with:
-          # arch: aarch64
-          # distro: ubuntu22.04
-          base_image: condaforge/linux-anvil-aarch64:latest
+          arch: aarch64
+          distro: ubuntu22.04
 
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}
@@ -43,9 +42,9 @@ jobs:
           # builds don't have to re-install them. The image layer is cached
           # publicly in your project's package repository, so it is vital that
           # no secrets are present in the container state or logs.
-          # install: |
-          #   apt-get update -q -y
-          #   apt-get install -q -y build-essential dos2unix pkg-config tar wget patch git gfortran
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y build-essential dos2unix pkg-config tar wget patch git gfortran
 
           # Produce a binary artifact and place it in the mounted volume
           run: |
