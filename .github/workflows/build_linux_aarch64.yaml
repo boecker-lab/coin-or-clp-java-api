@@ -64,7 +64,7 @@ jobs:
             export ADD_FFLAGS=-fallow-argument-mismatch
             # export ADD_CXXFLAGS==-fpermissive
             cd api/extern/coinor
-            ./coinbrew build install Cbc@master --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
+            ./coinbrew build install Cbc@releases/2.10.11 --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
             # build wrapper
             ls -ltrh linuxaarch64/dist/include
             ls -ltrh linuxaarch64/dist/include/coin-or
@@ -105,7 +105,7 @@ jobs:
       - name: package and upload
         working-directory: artifacts
         run: |
-          zipfile=clp_cbc-2.10.8.zip
+          zipfile=clp_cbc-2.10.11.zip
           url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
           if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
             curl $url/$zipfile -o $zipfile
