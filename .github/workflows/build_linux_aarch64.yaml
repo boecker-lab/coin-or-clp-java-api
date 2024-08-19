@@ -67,6 +67,7 @@ jobs:
             mkdir Data
             git clone https://github.com/coin-or-tools/Data-Sample Data/Sample
             git clone https://github.com/coin-or-tools/Data-miplib3 Data/miplib3
+            git clone https://github.com/coin-or/Osi Osi
             ./coinbrew fetch Cbc@releases/2.10.11 --skip-update
             ./coinbrew build install Cbc@releases/2.10.11 --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
             # build wrapper
