@@ -89,6 +89,7 @@ CLPModel::ReturnStatus CLPModel::solve() {
   m_cbc = new CbcModel(*m_si);
   m_cbc->setLogLevel(0);
   m_cbc->setMaximumSeconds(m_max_seconds);
+  m_cbc->setUseElapsedTime(true);
   m_cbc->branchAndBound();
   if (m_cbc->isProvenOptimal())
     return CLPModel::RET_OPTIMAL;
