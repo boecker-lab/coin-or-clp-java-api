@@ -1,4 +1,4 @@
-name: build_CLP_linux_aarch64_native
+name: build_CLP_linux_aarch64
 
 
 on:
@@ -50,4 +50,4 @@ jobs:
           mkdir clp
           cp -r laarch64 clp/
           zip $zipfile clp/laarch64/* # insert new ones
-          # curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
+          curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
