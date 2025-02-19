@@ -1,4 +1,4 @@
-name: build_CLP_linux_aarch64
+name: build_CLP_linux_aarch64_native
 
 
 on:
@@ -6,109 +6,40 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-arm
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      # - name: Cache coin-or dependencies
-      #   id: cache-coinor
-      #   uses: actions/cache@v2
-      #   with:
-      #     path:  api/extern/coinor/linux64/dist
-      #     key: ${{ runner.os }}-coinor-cbc2.10.12
-
-      - uses: uraimo/run-on-arch-action@v2
-        name: build clp+wrapper in aarch64 container
-        id: build
+      - name: Cache coin-or dependencies
+        id: cache-coinor
+        uses: actions/cache@v3
         with:
-          arch: aarch64
-          distro: ubuntu22.04
+          path:  api/extern/coinor/linuxaarch64/dist
+          key: ${{ runner.os }}-coinor-cbc2.10.12
 
-          # Not required, but speeds up builds
-          githubToken: ${{ github.token }}
+      - name: build coinor
+        working-directory: api/extern/coinor
+        if: steps.cache-coinor.outputs.cache-hit != 'true'
+        run: |
+          export ADD_FFLAGS=-fallow-argument-mismatch
+          # export ADD_CXXFLAGS=-lrt # only use if getting the error: "undefined reference to `clock_gettime'"
+          ./coinbrew build install Cbc@releases/2.10.12 --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
 
-          # Create an artifacts directory
-          setup: |
-            mkdir -p "${PWD}/artifacts"
+      - name: build CLPWrapper
+        working-directory: api
+        run: |
+          mkdir build
+          cd build
+          cmake .. # with -DSTATIC_STD=ON for old glibc versions
+          cmake --build . --target install
 
-          # Mount the artifacts directory as /artifacts in the container
-          dockerRunArgs: |
-            --volume "${PWD}/artifacts:/artifacts"
-
-          # Pass some environment variables to the container
-          env: | # YAML, but pipe character is necessary
-            artifact_name: clp
-
-          # The shell to run commands with in the container
-          shell: /bin/bash
-
-          # Install some dependencies in the container. This speeds up builds if
-          # you are also using githubToken. Any dependencies installed here will
-          # be part of the container image that gets cached, so subsequent
-          # builds don't have to re-install them. The image layer is cached
-          # publicly in your project's package repository, so it is vital that
-          # no secrets are present in the container state or logs.
-          install: |
-            apt-get update -q -y
-            apt-get install -q -y g++-12 gcc-12 make dos2unix pkg-config tar wget patch git gfortran cmake openjdk-21-jdk zlib1g-dev
-
-          # Produce a binary artifact and place it in the mounted volume
-          run: |
-            pwd
-            ls -ltrh
-            update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12
-            update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
-            gcc --version
-            # build coinor
-            export ADD_FFLAGS=-fallow-argument-mismatch
-            # export ADD_CXXFLAGS==-fpermissive
-            cd api/extern/coinor
-            mkdir Data
-            git clone https://github.com/coin-or-tools/Data-Sample Data/Sample
-            git clone https://github.com/coin-or-tools/Data-miplib3 Data/miplib3
-            git clone https://github.com/coin-or/Osi Osi
-            ./coinbrew fetch Cbc@releases/2.10.12 --skip-update
-            ./coinbrew build install Cbc@releases/2.10.12 --parallel-jobs $(nproc) --tests none --prefix linuxaarch64/dist
-            # build wrapper
-            ls -ltrh linuxaarch64/dist/include
-            ls -ltrh linuxaarch64/dist/include/coin-or
-            mv linuxaarch64/dist/include/coin-or linuxaarch64/dist/include/coin
-            cd ../../
-            mkdir build
-            cd build
-            export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64
-            cmake .. # with -DSTATIC_STD=ON for old glibc versions
-            cmake --build . --target install
-            # test
-            cd test
-            ./CLPTest
-            cd ../native/
-            ls -ltrh
-            cp -r * /artifacts
-
-      # - name: build coinor
-      #   working-directory: api/extern/coinor
-      #   if: steps.cache-coinor.outputs.cache-hit != 'true'
-      #   run: |
-      #     export ADD_FFLAGS=-fallow-argument-mismatch
-      #     # export ADD_CXXFLAGS=-lrt # only use if getting the error: "undefined reference to `clock_gettime'"
-      #     ./coinbrew build install Cbc@releases/2.10.12 --parallel-jobs $(nproc) --tests none --prefix linux64/dist
-
-      # - name: build CLPWrapper
-      #   working-directory: api
-      #   run: |
-      #     mkdir build
-      #     cd build
-      #     cmake .. # with -DSTATIC_STD=ON for old glibc versions
-      #     cmake --build . --target install
-
-      # - name: CLPTest
-      #   working-directory: api/build/test
-      #   run: ./CLPTest
+      - name: CLPTest
+        working-directory: api/build/test
+        run: ./CLPTest
 
       - name: package and upload
-        working-directory: artifacts
+        working-directory: api/build/native/
         run: |
           zipfile=clp_cbc-2.10.12.zip
           url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
@@ -119,4 +50,4 @@ jobs:
           mkdir clp
           cp -r laarch64 clp/
           zip $zipfile clp/laarch64/* # insert new ones
-          curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
+          # curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
