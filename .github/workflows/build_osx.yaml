@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-11
+    runs-on: macos-13
     steps:
       - name: get coin-or osx dependencies
         run: brew install bash gcc@10 wget svn git
