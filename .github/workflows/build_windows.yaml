@@ -14,7 +14,7 @@ jobs:
           ref: winfix
 
       - name: setup msys2
-        uses: msys2/setup-msys2@v3
+        uses: msys2/setup-msys2@v2
         with:
           update: true
           install: >-
