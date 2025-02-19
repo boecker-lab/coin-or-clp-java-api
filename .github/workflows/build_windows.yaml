@@ -9,12 +9,12 @@ jobs:
     runs-on: windows-2019
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: winfix
 
       - name: setup msys2
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@v3
         with:
           update: true
           install: >-
@@ -26,10 +26,10 @@ jobs:
 
       - name: Cache coin-or dependencies
         id: cache-coinor
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path:  api/extern/coinor/win64/dist
-          key: ${{ runner.os }}-coinor-cbc2.10.8
+          key: ${{ runner.os }}-coinor-cbc2.10.12
 
       - name: build coinor
         shell: msys2 {0}
@@ -37,7 +37,7 @@ jobs:
         if: steps.cache-coinor.outputs.cache-hit != 'true'
         run: |
           export ADD_FFLAGS=-fallow-argument-mismatch
-          ./coinbrew build install Cbc@releases/2.10.8 --parallel-jobs $(nproc) --tests none --prefix win64/dist
+          ./coinbrew build install Cbc@releases/2.10.12 --parallel-jobs $(nproc) --tests none --prefix win64/dist
 
       - name: build CLPWrapper
         shell: msys2 {0}
@@ -64,7 +64,7 @@ jobs:
         working-directory: api/build/native/
         shell: msys2 {0}
         run: |
-          zipfile=clp_cbc-2.10.8.zip
+          zipfile=clp_cbc-2.10.12.zip
           url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
           if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
             curl $url/$zipfile -o $zipfile
