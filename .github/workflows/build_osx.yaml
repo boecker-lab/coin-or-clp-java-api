@@ -12,20 +12,20 @@ jobs:
         run: brew install bash gcc@10 wget svn git
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache coin-or dependencies
         id: cache-coinor
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path:  api/extern/coinor/osx/dist
-          key: ${{ runner.os }}-coinor-cbc2.10.8
+          key: ${{ runner.os }}-coinor-cbc2.10.12
 
       - name: build coinor
         working-directory: api/extern/coinor
         if: steps.cache-coinor.outputs.cache-hit != 'true'
         run: |
-          ./coinbrew build install Cbc@releases/2.10.8 --parallel-jobs 4 --verbosity 3 --tests none --prefix osx/dist || ./coinbrew build install Cbc@releases/2.10.8 --parallel-jobs 4 --verbosity 3 --tests none --prefix osx/dist
+          ./coinbrew build install Cbc@releases/2.10.12 --parallel-jobs 4 --verbosity 3 --tests none --prefix osx/dist || ./coinbrew build install Cbc@releases/2.10.12 --parallel-jobs 4 --verbosity 3 --tests none --prefix osx/dist
 
       - name: hpp/h fix
         shell: bash
@@ -57,7 +57,7 @@ jobs:
         working-directory: api/build/native
         shell: bash
         run: |
-          zipfile=clp_cbc-2.10.8.zip
+          zipfile=clp_cbc-2.10.12.zip
           url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
           if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
             curl $url/$zipfile -o $zipfile
