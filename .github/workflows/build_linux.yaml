@@ -16,7 +16,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path:  api/extern/coinor/linux64/dist
-          key: ${{ runner.os }}-coinor-cbc2.10.8
+          key: ${{ runner.os }}-coinor-cbc2.10.12
 
       - name: build coinor
         working-directory: api/extern/coinor
@@ -24,7 +24,7 @@ jobs:
         run: |
           export ADD_FFLAGS=-fallow-argument-mismatch
           # export ADD_CXXFLAGS=-lrt # only use if getting the error: "undefined reference to `clock_gettime'"
-          ./coinbrew build install Cbc@releases/2.10.8 --parallel-jobs $(nproc) --tests none --prefix linux64/dist
+          ./coinbrew build install Cbc@releases/2.10.12 --parallel-jobs $(nproc) --tests none --prefix linux64/dist
 
       - name: build CLPWrapper
         working-directory: api
@@ -41,7 +41,7 @@ jobs:
       - name: package and upload
         working-directory: api/build/native/
         run: |
-          zipfile=clp_cbc-2.10.8.zip
+          zipfile=clp_cbc-2.10.12.zip
           url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
           if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
             curl $url/$zipfile -o $zipfile
