@@ -49,5 +49,7 @@ jobs:
           fi
           mkdir clp
           cp -r laarch64 clp/
+          # make sure that the rpath is set for all libraries
+          patchelf --set-rpath '.:$ORIGIN' clp/laarch64/*
           zip $zipfile clp/laarch64/* # insert new ones
           curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
