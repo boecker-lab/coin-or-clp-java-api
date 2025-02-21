@@ -53,3 +53,7 @@ jobs:
           patchelf --set-rpath '.:$ORIGIN' clp/l64/*
           zip $zipfile clp/l64/* # insert new ones
           curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
