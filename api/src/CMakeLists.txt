@@ -66,7 +66,7 @@ install(CODE [[
     LIBRARIES $<TARGET_FILE:CLPModelWrapper_JNI>)
   foreach (found_dep IN LISTS RESOLVED)
     # copy only these libs
-    if (found_dep MATCHES ".*([Cc]bc|[Cc]lp|[Cc]oin|gcc_s|gfortran|lapack|quadmath|c\\+\\+).*"
+    if (found_dep MATCHES ".*([Cc]bc|[Cc]lp|[Cc]oin|gcc_s|gfortran|lapack|blas|quadmath|c\\+\\+).*"
 	OR (MACOS AND found_dep MATCHES ".*gmp.*"))
       # TODO: WINDOWS: copy manually for now
       # copy all depencencies only as major version
