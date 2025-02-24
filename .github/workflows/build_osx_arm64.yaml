@@ -1,0 +1,73 @@
+name: build_CLP_osx_arm64
+
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: get coin-or osx dependencies
+        run: brew install bash gcc@10 wget svn git
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cache coin-or dependencies
+        id: cache-coinor
+        uses: actions/cache@v3
+        with:
+          path:  api/extern/coinor/osx_arm64/dist
+          key: ${{ runner.os }}-coinor-cbc2.10.12
+
+      - name: build coinor
+        working-directory: api/extern/coinor
+        if: steps.cache-coinor.outputs.cache-hit != 'true'
+        run: |
+          ./coinbrew build install Cbc@releases/2.10.12 --parallel-jobs 4 --verbosity 3 --tests none --prefix osx_arm64/dist || ./coinbrew build install Cbc@releases/2.10.12 --parallel-jobs 4 --verbosity 3 --tests none --prefix osx_arm64/dist
+
+      - name: hpp/h fix
+        shell: bash
+        run: |
+          for f in api/src/CLPModelWrapper_JNI.cpp api/src/CMakeLists.txt api/src/CLPModel.cpp api/test/CLPTest.cpp; do
+            sed -i'.bak' 's/CLPModel.hpp/CLPModel.h/ g' $f
+          done
+          mv api/src/CLPModel.hpp api/src/CLPModel.h
+
+      - name: build CLPWrapper
+        working-directory: api
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build . --target install
+
+      - name: CLPTest
+        working-directory: api/build/test
+        run: ./CLPTest
+
+      - name: adapt runpaths
+        working-directory: api/build/native/osx_arm64
+        run: |
+          chmod +x ../../../../mac_utils/make_rpaths
+          ../../../../mac_utils/make_rpaths
+
+      - name: upload
+        working-directory: api/build/native
+        shell: bash
+        run: |
+          zipfile=clp_cbc-2.10.12.zip
+          url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
+          if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
+            curl $url/$zipfile -o $zipfile
+            zip $zipfile -d 'clp/osx_arm64/*' || true # delete old binaries
+          fi
+          mkdir clp
+          cp -r osx_arm64 clp/
+          zip $zipfile clp/osx_arm64/* # insert new ones
+          curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
+
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
