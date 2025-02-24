@@ -9,7 +9,7 @@ jobs:
     runs-on: macos-14
     steps:
       - name: get coin-or osx dependencies
-        run: brew install bash gcc@10 wget svn git
+        run: brew install bash gcc wget svn git
 
       - name: Checkout
         uses: actions/checkout@v3
