@@ -63,7 +63,7 @@ jobs:
             buildnumber=1
           fi
           # change version
-          sed -E "s/(^ *version ')[^']+('.*)/\1$CBC_VERSION.$buildnumber\2/" build.gradle
+          sed -i -E "s/(^ *version ')[^']+('.*)/\1$CBC_VERSION.$buildnumber\2/" build.gradle
 
       - name: create PR
         uses: peter-evans/create-pull-request@v3
