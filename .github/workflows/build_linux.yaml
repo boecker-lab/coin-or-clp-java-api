@@ -41,6 +41,7 @@ jobs:
       - name: checkout cbc-java repository to create PR
         uses: actions/checkout@v4
         with:
+          repository: boecker-lab/cbc-java
           path: cbc-java
 
       - name: move binaries to the right location
