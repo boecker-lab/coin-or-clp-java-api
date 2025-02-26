@@ -1,22 +1,22 @@
 name: build_CLP_linux64
-
-
 on:
   workflow_dispatch:
+env:
+  CBC_VERSION: 2.10.12
 
 jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache coin-or dependencies
         id: cache-coinor
         uses: actions/cache@v3
         with:
           path:  api/extern/coinor/linux64/dist
-          key: ${{ runner.os }}-coinor-cbc2.10.12
+          key: ${{ runner.os }}-${{ runner.arch }}-coinor-cbc-$CBC_VERSION
 
       - name: build coinor
         working-directory: api/extern/coinor
@@ -24,7 +24,7 @@ jobs:
         run: |
           export ADD_FFLAGS=-fallow-argument-mismatch
           # export ADD_CXXFLAGS=-lrt # only use if getting the error: "undefined reference to `clock_gettime'"
-          ./coinbrew build install Cbc@releases/2.10.12 --parallel-jobs $(nproc) --tests none --prefix linux64/dist
+          ./coinbrew build install Cbc@releases/$CBC_VERSION --parallel-jobs $(nproc) --tests none --prefix linux64/dist
 
       - name: build CLPWrapper
         working-directory: api
@@ -38,21 +38,57 @@ jobs:
         working-directory: api/build/test
         run: ./CLPTest
 
-      - name: package and upload
-        working-directory: api/build/native/
+      - name: checkout cbc-java repository to create PR
+        uses: actions/checkout@v4
+        with:
+          path: cbc-java
+
+      - name: move binaries to the right location
         run: |
-          zipfile=clp_cbc-2.10.12.zip
-          url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
-          if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
-            curl $url/$zipfile -o $zipfile
-            zip $zipfile -d 'clp/l64/*' || true # delete old binaries
+          cp api/build/native/l64/* cbc-java/cbc-java-native-linux-x86-64/src/main/resources/linux-x86-64
+
+      - name: set build version
+        id: setversion
+        continue-on-error: true
+        working-directory: cbc-java
+        run: |
+          versionline_prev=$(sed -n '/^ *version/ p' build.gradle)
+          cbcversion_prev=$(echo $versionline_prev | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+)\..*/\1/')
+          buildnumber=$(echo $versionline_prev | sed -E 's/.*\.([0-9]+).*/\1/')
+          # increase build number if CBC version is unchanged, otherwise reset it
+          if [[ "$CBC_VERSION" == "$cbcversion_prev" ]]; then
+            ((buildnumber++))
+          else
+            buildnumber=1
           fi
-          mkdir clp
-          cp -r l64 clp/
-          # make sure that the rpath is set for all libraries
-          patchelf --set-rpath '.:$ORIGIN' clp/l64/*
-          zip $zipfile clp/l64/* # insert new ones
-          curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
+          # change version
+          sed -E "s/(^ *version ')[^']+('.*)/\1$CBC_VERSION.$buildnumber\2/" build.gradle
+
+      - name: create PR
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: "token"        # TODO
+          title: "CLPWrapper update ${{ runner.os }} ${{ runner.arch }}, CBC version $CBC_VERSION"
+          body: "${{ steps.setversion.outcome == 'failure' && 'The version in build.gradle has to be set manually!' }}"
+          branch: "update_${{ runner.os }}_${{ runner.arch }}_cbc$CBC_VERSION"
+          base: main
+          path: cbc-java
+
+      # - name: package and upload
+      #   working-directory: api/build/native/
+      #   run: |
+      #     zipfile=clp_cbc-2.10.12.zip
+      #     url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
+      #     if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
+      #       curl $url/$zipfile -o $zipfile
+      #       zip $zipfile -d 'clp/l64/*' || true # delete old binaries
+      #     fi
+      #     mkdir clp
+      #     cp -r l64 clp/
+      #     # make sure that the rpath is set for all libraries
+      #     patchelf --set-rpath '.:$ORIGIN' clp/l64/*
+      #     zip $zipfile clp/l64/* # insert new ones
+      #     curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
 
       - name: Setup tmate session
         if: ${{ failure() }}
