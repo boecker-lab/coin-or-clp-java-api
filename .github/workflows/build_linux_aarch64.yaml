@@ -48,7 +48,7 @@ jobs:
 
       - name: move binaries to the right location
         run: |
-          cp api/build/native/laarch64/* cbc-java/cbc-java-native-linux-arm64/src/main/resources/linux-arm64
+          cp api/build/native/larm64/* cbc-java/cbc-java-native-linux-arm64/src/main/resources/linux-arm64
 
       - name: set build version
         id: setversion

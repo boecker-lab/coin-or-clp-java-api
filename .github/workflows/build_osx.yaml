@@ -50,7 +50,7 @@ jobs:
         run: ./CLPTest
 
       - name: adapt runpaths
-        working-directory: api/build/native/osx
+        working-directory: api/build/native/osx64
         run: |
           chmod +x ../../../../mac_utils/make_rpaths
           ../../../../mac_utils/make_rpaths
@@ -63,7 +63,7 @@ jobs:
 
       - name: move binaries to the right location
         run: |
-          cp api/build/native/osx/* cbc-java/cbc-java-native-mac-x86-64/src/main/resources/mac-x86-64
+          cp api/build/native/osx64/* cbc-java/cbc-java-native-mac-x86-64/src/main/resources/mac-x86-64
 
       - name: set build version
         id: setversion
