@@ -21,7 +21,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path:  api/extern/coinor/osxarm64/dist
-          key: ${{ runner.os }}-${{ runner.arch }}-coinor-cbc-$CBC_VERSION
+          key: ${{ runner.os }}-${{ runner.arch }}-coinor-cbc-${{ env.CBC_VERSION }}
 
       - name: build coinor
         working-directory: api/extern/coinor
@@ -55,22 +55,11 @@ jobs:
           chmod +x ../../../../mac_utils/make_rpaths
           ../../../../mac_utils/make_rpaths
 
-      - name: checkout cbc-java repository to create PR; PR already open?
+      - name: checkout cbc-java repository to create PR
         uses: actions/checkout@v4
-        id: bad-checkout
-        continue-on-error: true
         with:
           repository: boecker-lab/cbc-java
           path: cbc-java
-          ref: "update_clpwrapper_cbc${{ env.CBC_VERSION}}"
-
-      - name: checkout cbc-java repository to create PR; PR has to be created
-        uses: actions/checkout@v4
-        if: steps.bad-checkout.outcome == 'failure'
-        with:
-          repository: boecker-lab/cbc-java
-          path: cbc-java
-
 
       - name: move binaries to the right location
         run: |
@@ -97,9 +86,9 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.CBC_JAVA_UPDATE_TOKEN }}
-          title: "CLPWrapper update, CBC version ${{ env.CBC_VERSION }}"
+          title: "CLPWrapper update ${{ runner.os }} ${{ runner.arch }}, CBC version ${{ env.CBC_VERSION }}"
           body: "${{ steps.setversion.outcome == 'failure' && 'The build number in build.gradle has to be set manually!' || 'The build number has been automatically increased.' }}"
-          branch: "update_clpwrapper_cbc${{ env.CBC_VERSION}}"
+          branch: "update_${{ runner.os }}_${{ runner.arch }}_clpwrapper_cbc${{ env.CBC_VERSION}}"
           commit-message: "[create-pull-request] ${{ runner.os }} ${{ runner.arch }}: update CLPWrapper and/or dependencies"
           base: main
           path: cbc-java
