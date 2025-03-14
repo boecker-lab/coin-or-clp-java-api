@@ -55,11 +55,22 @@ jobs:
           chmod +x ../../../../mac_utils/make_rpaths
           ../../../../mac_utils/make_rpaths
 
-      - name: checkout cbc-java repository to create PR
+      - name: checkout cbc-java repository to create PR; PR already open?
         uses: actions/checkout@v4
+        id: bad-checkout
+        continue-on-error: true
         with:
           repository: boecker-lab/cbc-java
           path: cbc-java
+          ref: "update_clpwrapper_cbc${{ env.CBC_VERSION}}"
+
+      - name: checkout cbc-java repository to create PR; PR has to be created
+        uses: actions/checkout@v4
+        if: steps.bad-checkout.outcome == 'failure'
+        with:
+          repository: boecker-lab/cbc-java
+          path: cbc-java
+
 
       - name: move binaries to the right location
         run: |
