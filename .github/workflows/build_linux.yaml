@@ -69,10 +69,10 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.CBC_JAVA_UPDATE_TOKEN }}
-          title: "CLPWrapper update ${{ runner.os }} ${{ runner.arch }}, CBC version ${{ env.CBC_VERSION }}"
+          title: "CLPWrapper update, CBC version ${{ env.CBC_VERSION }}"
           body: "${{ steps.setversion.outcome == 'failure' && 'The build number in build.gradle has to be set manually!' || 'The build number has been automatically increased.' }}"
-          branch: "update_${{ runner.os }}_${{ runner.arch }}_cbc${{ env.CBC_VERSION}}"
-          commit-message: "[create-pull-request] update CLPWrapper and/or dependencies"
+          branch: "update_clpwrapper_cbc${{ env.CBC_VERSION}}"
+          commit-message: "[create-pull-request] ${{ runner.os }} ${{ runner.arch }}: update CLPWrapper and/or dependencies"
           base: main
           path: cbc-java
 

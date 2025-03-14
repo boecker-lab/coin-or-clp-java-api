@@ -53,17 +53,56 @@ jobs:
           chmod +x ../../../../mac_utils/make_rpaths
           ../../../../mac_utils/make_rpaths
 
-      - name: upload
-        working-directory: api/build/native
-        shell: bash
+      - name: checkout cbc-java repository to create PR
+        uses: actions/checkout@v4
+        with:
+          repository: boecker-lab/cbc-java
+          path: cbc-java
+
+      - name: move binaries to the right location
         run: |
-          zipfile=clp_cbc-2.10.12.zip
-          url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
-          if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
-            curl $url/$zipfile -o $zipfile
-            zip $zipfile -d 'clp/osx/*' || true # delete old binaries
+          cp api/build/native/osx/* cbc-java/cbc-java-native-mac-x86-64/src/main/resources/mac-x86-64
+
+      - name: set build version
+        id: setversion
+        continue-on-error: true
+        working-directory: cbc-java
+        run: |
+          versionline_prev=$(sed -n '/^ *version/ p' build.gradle)
+          cbcversion_prev=$(echo $versionline_prev | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+)\..*/\1/')
+          buildnumber=$(echo $versionline_prev | sed -E 's/.*\.([0-9]+).*/\1/')
+          # increase build number if CBC version is unchanged, otherwise reset it
+          if [[ "$CBC_VERSION" == "$cbcversion_prev" ]]; then
+            ((buildnumber++))
+          else
+            buildnumber=1
           fi
-          mkdir clp
-          cp -r osx clp/
-          zip $zipfile clp/osx/* # insert new ones
-          curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
+          # change version
+          sed -i -E "s/(^ *version ')[^']+('.*)/\1$CBC_VERSION.$buildnumber\2/" build.gradle
+
+      - name: create PR
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.CBC_JAVA_UPDATE_TOKEN }}
+          title: "CLPWrapper update, CBC version ${{ env.CBC_VERSION }}"
+          body: "${{ steps.setversion.outcome == 'failure' && 'The build number in build.gradle has to be set manually!' || 'The build number has been automatically increased.' }}"
+          branch: "update_clpwrapper_cbc${{ env.CBC_VERSION}}"
+          commit-message: "[create-pull-request] ${{ runner.os }} ${{ runner.arch }}: update CLPWrapper and/or dependencies"
+          base: main
+          path: cbc-java
+
+
+      # - name: upload
+      #   working-directory: api/build/native
+      #   shell: bash
+      #   run: |
+      #     zipfile=clp_cbc-2.10.12.zip
+      #     url=https://bio.informatik.uni-jena.de/repository/dist-release-local/de/unijena/bioinf/clp/
+      #     if [[ $(curl -Is $url/$zipfile | head -n 1 | grep -c 'OK') -eq 1 ]]; then
+      #       curl $url/$zipfile -o $zipfile
+      #       zip $zipfile -d 'clp/osx/*' || true # delete old binaries
+      #     fi
+      #     mkdir clp
+      #     cp -r osx clp/
+      #     zip $zipfile clp/osx/* # insert new ones
+      #     curl --user '${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_TOKEN }}' -X PUT $url -T $zipfile
