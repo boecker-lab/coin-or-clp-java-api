@@ -68,7 +68,7 @@ jobs:
       - name: create PR
         uses: peter-evans/create-pull-request@v3
         with:
-          token: "token"        # TODO
+          token: ${{ secrets.CBC_JAVA_UPDATE_TOKEN }}
           title: "CLPWrapper update ${{ runner.os }} ${{ runner.arch }}, CBC version $CBC_VERSION"
           body: "${{ steps.setversion.outcome == 'failure' && 'The version in build.gradle has to be set manually!' }}"
           branch: "update_${{ runner.os }}_${{ runner.arch }}_cbc$CBC_VERSION"
