@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-2022  # windows-2019 is retired
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: setup msys2
         uses: msys2/setup-msys2@v2
@@ -27,7 +27,7 @@ jobs:
 
       - name: Cache coin-or dependencies
         id: cache-coinor
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path:  api/extern/coinor/win64/dist
           key: ${{ runner.os }}-${{ runner.arch }}-coinor-cbc-${{ env.CBC_VERSION }}
@@ -70,7 +70,7 @@ jobs:
           cp -v /mingw64/bin/libgfortran-5.dll /mingw64/bin/libgcc_s_seh-1.dll /mingw64/bin/libbz2-1.dll /mingw64/bin/libstdc++-6.dll /mingw64/bin/libgmp-10.dll /mingw64/bin/zlib1.dll /mingw64/bin/libquadmath-0.dll /mingw64/bin/libwinpthread-1.dll .
 
       - name: checkout cbc-java repository to create PR
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: boecker-lab/cbc-java
           path: cbc-java
@@ -97,7 +97,7 @@ jobs:
           sed -i -E "s/(^ *version ')[^']+('.*)/\1$CBC_VERSION.$buildnumber\2/" build.gradle
 
       - name: create PR
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.CBC_JAVA_UPDATE_TOKEN }}
           title: "CLPWrapper update ${{ runner.os }} ${{ runner.arch }}, CBC version ${{ env.CBC_VERSION }}"

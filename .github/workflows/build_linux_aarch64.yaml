@@ -18,11 +18,11 @@ jobs:
           git config --global --add safe.directory '*'
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Cache coin-or dependencies
         id: cache-coinor
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path:  api/extern/coinor/linuxaarch64/dist
           key: ${{ runner.os }}-${{ runner.arch }}-coinor-cbc-${{ env.CBC_VERSION }}
@@ -48,7 +48,7 @@ jobs:
         run: ./CLPTest
 
       - name: checkout cbc-java repository to create PR
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: boecker-lab/cbc-java
           path: cbc-java
@@ -75,7 +75,7 @@ jobs:
           sed -i -E "s/(^ *version ')[^']+('.*)/\1$CBC_VERSION.$buildnumber\2/" build.gradle
 
       - name: create PR
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.CBC_JAVA_UPDATE_TOKEN }}
           title: "CLPWrapper update ${{ runner.os }} ${{ runner.arch }}, CBC version ${{ env.CBC_VERSION }}"
