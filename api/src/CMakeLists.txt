@@ -24,17 +24,16 @@ target_link_libraries(CLPModel PUBLIC
   ${EXTRA_STATIC_LINKS}
   ${CLP_CBC} ${CLP_CGL}
   ${CLP_CLP} ${CLP_OSICLP} ${CLP_OSI} ${CLP_COINUTILS}
-  ${CLP_COINLAPACK} ${CLP_COINMUMPS}
-  ${CLP_COINBLAS} ${CLP_COINMETIS}
-  # system libraries, NOTE: might have to be uncommented for windows
-  # ${GFORTRAN} ${BZ2} ${ZLIB_LIBRARIES} ${GMP}
   )
 
-target_link_libraries(CLPModelWrapper_JNI PRIVATE CLPModel
-  # NOTE: JNI_LIBRARIES should be commmented out for linux (old libc). If getting errors
-  # on other build systems, reenable
-  # ${JNI_LIBRARIES}
-  )
+target_link_libraries(CLPModelWrapper_JNI PRIVATE CLPModel)
+
+if (WINDOWS)
+  # system libraries and the JVM, needed on Windows only (from branch winfix); on Linux, JNI_LIBRARIES would
+  # tie the wrapper to the build machine's libjvm
+  target_link_libraries(CLPModel PUBLIC ${GFORTRAN} ${BZ2} ${ZLIB_LIBRARIES} ${GMP})
+  target_link_libraries(CLPModelWrapper_JNI PRIVATE ${JNI_LIBRARIES})
+endif()
 
 # install path corresponding to os/arch
 set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/../build/")

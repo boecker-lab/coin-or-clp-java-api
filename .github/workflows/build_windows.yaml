@@ -12,8 +12,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: winfix
 
       - name: setup msys2
         uses: msys2/setup-msys2@v2
@@ -41,6 +39,14 @@ jobs:
         run: |
           export ADD_FFLAGS=-fallow-argument-mismatch
           ./coinbrew build install Cbc@releases/$CBC_VERSION --parallel-jobs $(nproc) --tests none --prefix win64/dist
+
+      - name: hpp/h fix
+        shell: msys2 {0}
+        run: |
+          for f in api/src/CLPModelWrapper_JNI.cpp api/src/CMakeLists.txt api/src/CLPModel.cpp api/test/CLPTest.cpp; do
+            sed -i 's/CLPModel.hpp/CLPModel.h/ g' $f
+          done
+          mv api/src/CLPModel.hpp api/src/CLPModel.h
 
       - name: build CLPWrapper
         shell: msys2 {0}

@@ -71,17 +71,12 @@ find_library(CLP_CLP NAMES Clp libClp.lib
 find_library(CLP_CBC NAMES Cbc
   PATHS ${COIN_LIB_HINTS} ${COIN_LIB_HINTS_GENERAL} NO_DEFAULT_PATH)
 if (WINDOWS)
-  find_library(CLP_COINGLPK NAMES coinglpk
+  # the msys2 build of Cbc has no GLPK, MUMPS, METIS, ASL or bundled BLAS/LAPACK (from branch winfix)
+  find_library(CLP_CLPSOLVER NAMES ClpSolver
     PATHS ${COIN_LIB_HINTS} ${COIN_LIB_HINTS_GENERAL} NO_DEFAULT_PATH)
-  find_library(CLP_COINMUMPS NAMES coinmumps
+  find_library(CLP_CBCSOLVER NAMES CbcSolver
     PATHS ${COIN_LIB_HINTS} ${COIN_LIB_HINTS_GENERAL} NO_DEFAULT_PATH)
-  find_library(CLP_COINBLAS NAMES coinblas
-    PATHS ${COIN_LIB_HINTS} ${COIN_LIB_HINTS_GENERAL} NO_DEFAULT_PATH)
-  find_library(CLP_COINMETIS NAMES coinmetis
-    PATHS ${COIN_LIB_HINTS} ${COIN_LIB_HINTS_GENERAL} NO_DEFAULT_PATH)
-  find_library(CLP_COINLAPACK NAMES coinlapack
-    PATHS ${COIN_LIB_HINTS} ${COIN_LIB_HINTS_GENERAL} NO_DEFAULT_PATH)
-  find_library(CLP_COINASL NAMES coinasl
+  find_library(CLP_CGL NAMES Cgl
     PATHS ${COIN_LIB_HINTS} ${COIN_LIB_HINTS_GENERAL} NO_DEFAULT_PATH)
   find_library(BZ2 NAMES bz2 libbz2-1.dll)
   find_library(ZSTD NAMES zstd libzstd.dll)
