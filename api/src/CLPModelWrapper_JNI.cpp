@@ -15,6 +15,11 @@ public:
   std::vector<int> cached_rowstarts;
   std::vector<double> cached_lb;
   std::vector<double> cached_ub;
+  // copies of the Java arrays the model keeps pointers to until it is solved
+  std::vector<double> objective;
+  std::vector<double> col_lb;
+  std::vector<double> col_ub;
+  std::vector<double> col_start;
   CLPModelWrapper(int ncols, int obj_sense)
       : model{new CLPModel(ncols,
                            static_cast<CLPModel::ObjectiveSense>(obj_sense))} {
@@ -52,8 +57,9 @@ Java_de_unijena_bioinf_FragmentationTreeConstruction_computation_tree_ilp_CLPMod
     JNIEnv *env, jobject, jlong wrapper_ptr, jdoubleArray j_objective) {
   auto len{env->GetArrayLength(j_objective)};
   CLPModelWrapper *wrapper{((CLPModelWrapper *) wrapper_ptr)};
-  double *objective = env->GetDoubleArrayElements(j_objective, nullptr);
-  wrapper->model->setObjective(objective, len);
+  wrapper->objective.resize(len);
+  env->GetDoubleArrayRegion(j_objective, 0, len, wrapper->objective.data());
+  wrapper->model->setObjective(wrapper->objective.data(), len);
 }
 
 JNIEXPORT void JNICALL
@@ -67,19 +73,22 @@ Java_de_unijena_bioinf_FragmentationTreeConstruction_computation_tree_ilp_CLPMod
     JNIEnv *env, jobject, jlong wrapper_ptr, jdoubleArray j_col_lb,
     jdoubleArray j_col_ub) {
   CLPModelWrapper *wrapper{((CLPModelWrapper *) wrapper_ptr)};
-  double *col_lb = env->GetDoubleArrayElements(j_col_lb, nullptr);
-  double *col_ub = env->GetDoubleArrayElements(j_col_ub, nullptr);
   auto len{env->GetArrayLength(j_col_lb)};
-  wrapper->model->setColBounds(col_lb, col_ub, len);
+  wrapper->col_lb.resize(len);
+  wrapper->col_ub.resize(len);
+  env->GetDoubleArrayRegion(j_col_lb, 0, len, wrapper->col_lb.data());
+  env->GetDoubleArrayRegion(j_col_ub, 0, len, wrapper->col_ub.data());
+  wrapper->model->setColBounds(wrapper->col_lb.data(), wrapper->col_ub.data(), len);
 }
 
 JNIEXPORT void JNICALL
 Java_de_unijena_bioinf_FragmentationTreeConstruction_computation_tree_ilp_CLPModel_1JNI_n_1setColStart(
     JNIEnv *env, jobject, jlong wrapper_ptr, jdoubleArray j_start) {
   CLPModelWrapper *wrapper{((CLPModelWrapper *) wrapper_ptr)};
-  double *start = env->GetDoubleArrayElements(j_start, nullptr);
   auto len{env->GetArrayLength(j_start)};
-  wrapper->model->setColStart(start, len);
+  wrapper->col_start.resize(len);
+  env->GetDoubleArrayRegion(j_start, 0, len, wrapper->col_start.data());
+  wrapper->model->setColStart(wrapper->col_start.data(), len);
 }
 
 JNIEXPORT void JNICALL
