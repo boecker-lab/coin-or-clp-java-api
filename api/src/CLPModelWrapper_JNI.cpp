@@ -20,6 +20,9 @@ public:
   std::vector<double> col_lb;
   std::vector<double> col_ub;
   std::vector<double> col_start;
+  // row bounds of addSparseRows, which the model reads only when it is solved
+  std::vector<double> row_lb;
+  std::vector<double> row_ub;
   CLPModelWrapper(int ncols, int obj_sense)
       : model{new CLPModel(ncols,
                            static_cast<CLPModel::ObjectiveSense>(obj_sense))} {
@@ -143,16 +146,17 @@ Java_de_unijena_bioinf_FragmentationTreeConstruction_computation_tree_ilp_CLPMod
   int *rowstarts{env->GetIntArrayElements(j_rowstarts, nullptr)};
   double *elems{env->GetDoubleArrayElements(j_elems, nullptr)};
   int *indices{env->GetIntArrayElements(j_indices, nullptr)};
-  double *lb{env->GetDoubleArrayElements(j_lb, nullptr)};
-  double *ub{env->GetDoubleArrayElements(j_ub, nullptr)};
+  wrapper->row_lb.resize(numrows);
+  wrapper->row_ub.resize(numrows);
+  env->GetDoubleArrayRegion(j_lb, 0, numrows, wrapper->row_lb.data());
+  env->GetDoubleArrayRegion(j_ub, 0, numrows, wrapper->row_ub.data());
   auto len{env->GetArrayLength(j_elems)};
-  wrapper->model->addSparseRows(numrows, rowstarts, elems, indices, len, lb,
-                                ub);
+  // the matrix copies elements, indices and row starts; the row bounds are kept by pointer
+  wrapper->model->addSparseRows(numrows, rowstarts, elems, indices, len,
+                                wrapper->row_lb.data(), wrapper->row_ub.data());
   env->ReleaseIntArrayElements(j_rowstarts, rowstarts, JNI_ABORT);
   env->ReleaseDoubleArrayElements(j_elems, elems, JNI_ABORT);
   env->ReleaseIntArrayElements(j_indices, indices, JNI_ABORT);
-  env->ReleaseDoubleArrayElements(j_lb, lb, JNI_ABORT);
-  env->ReleaseDoubleArrayElements(j_ub, ub, JNI_ABORT);
 }
 
 JNIEXPORT jint JNICALL
