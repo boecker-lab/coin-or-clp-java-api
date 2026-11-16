@@ -4,11 +4,11 @@ name: build_CLP_win64
 on:
   workflow_dispatch:
 env:
-  CBC_VERSION: 2.10.12
+  CBC_VERSION: 2.10.13
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-2022  # windows-2019 is retired
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
 
       - name: Cache coin-or dependencies
         id: cache-coinor
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path:  api/extern/coinor/win64/dist
           key: ${{ runner.os }}-${{ runner.arch }}-coinor-cbc-${{ env.CBC_VERSION }}
@@ -91,7 +91,7 @@ jobs:
           sed -i -E "s/(^ *version ')[^']+('.*)/\1$CBC_VERSION.$buildnumber\2/" build.gradle
 
       - name: create PR
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.CBC_JAVA_UPDATE_TOKEN }}
           title: "CLPWrapper update ${{ runner.os }} ${{ runner.arch }}, CBC version ${{ env.CBC_VERSION }}"
