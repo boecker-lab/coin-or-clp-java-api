@@ -114,14 +114,10 @@ Java_de_unijena_bioinf_FragmentationTreeConstruction_computation_tree_ilp_CLPMod
   double *elems{env->GetDoubleArrayElements(j_elems, nullptr)};
   int *indices{env->GetIntArrayElements(j_indices, nullptr)};
   auto len{env->GetArrayLength(j_elems)};
-  // the `reserve` calls are supposed to save time, as we know
-  // beforehand how many elements we want to add
-  wrapper->cached_elems.reserve(wrapper->cached_elems.size() + len);
-  wrapper->cached_indices.reserve(wrapper->cached_indices.size() + len);
-  for (int i{0}; i < len; ++i) {
-    wrapper->cached_elems.push_back(elems[i]);
-    wrapper->cached_indices.push_back(indices[i]);
-  }
+  // no reserve(size() + len) here: it allocates exactly that size, so every row would copy all rows before it;
+  // insert grows the vectors geometrically, which keeps adding all rows linear
+  wrapper->cached_elems.insert(wrapper->cached_elems.end(), elems, elems + len);
+  wrapper->cached_indices.insert(wrapper->cached_indices.end(), indices, indices + len);
   wrapper->cached_lb.push_back(lb);
   wrapper->cached_ub.push_back(ub);
   wrapper->cached_rowstarts.push_back(wrapper->cached_rowstarts.back() + len);
