@@ -67,7 +67,7 @@ jobs:
         shell: msys2 {0}
         run: |
           ldd CLPModelWrapper_JNI.dll
-          cp -v /mingw64/bin/libgfortran-5.dll /mingw64/bin/libgcc_s_seh-1.dll /mingw64/bin/libbz2-1.dll /mingw64/bin/libstdc++-6.dll /mingw64/bin/libgmp-10.dll /mingw64/bin/zlib1.dll /mingw64/bin/libquadmath-0.dll /mingw64/bin/libwinpthread-1.dll .
+          cp -v /mingw64/bin/libgfortran-5.dll /mingw64/bin/libgcc_s_seh-1.dll /mingw64/bin/libbz2-1.dll /mingw64/bin/libstdc++-6.dll /mingw64/bin/libgmp-10.dll /mingw64/bin/libz-1.dll /mingw64/bin/libquadmath-0.dll /mingw64/bin/libwinpthread-1.dll .
 
       - name: checkout cbc-java repository to create PR
         uses: actions/checkout@v7
