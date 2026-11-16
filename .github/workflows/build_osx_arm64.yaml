@@ -113,4 +113,6 @@ jobs:
 
       - name: Setup tmate session
         if: ${{ failure() }}
+        # without a limit the debug session keeps the runner until the 6 h job timeout
+        timeout-minutes: 15
         uses: mxschmitt/action-tmate@v3
