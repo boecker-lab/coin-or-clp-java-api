@@ -64,6 +64,8 @@ jobs:
       - name: move binaries to the right location
         run: |
           cp api/build/native/osx64/* cbc-java/cbc-java-native-mac-x86-64/src/main/resources/mac-x86-64
+          # cbc-java-jni ships the wrapper alone and comes first on the classpath, so it needs the new wrapper too
+          cp api/build/native/osx64/libCLPModelWrapper_JNI.dylib cbc-java/cbc-java-jni-mac-x86-64/src/main/resources/mac-x86-64/
 
       - name: set build version
         id: setversion

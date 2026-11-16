@@ -56,6 +56,8 @@ jobs:
       - name: move binaries to the right location
         run: |
           cp api/build/native/larm64/* cbc-java/cbc-java-native-linux-arm64/src/main/resources/linux-arm64
+          # cbc-java-jni ships the wrapper alone and comes first on the classpath, so it needs the new wrapper too
+          cp api/build/native/larm64/libCLPModelWrapper_JNI.so cbc-java/cbc-java-jni-linux-arm64/src/main/resources/linux-arm64/
 
       - name: set build version
         id: setversion
